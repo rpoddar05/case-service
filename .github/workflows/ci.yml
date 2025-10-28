@@ -22,8 +22,12 @@ jobs:
           java-version: 17
           cache: maven
 
-      - name: Make Maven Wrapper executable (just in case)
-        run: chmod +x mvnw
+      # Helpful diagnostics for Testcontainers
+      - name: Docker info
+        run: |
+          docker --version
+          docker info
 
+      # Build & run tests (integration tests included)
       - name: Build & test
         run: ./mvnw -B -U verify
