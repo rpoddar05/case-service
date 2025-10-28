@@ -1,11 +1,16 @@
 name: CI
+
 on:
   push:
+    branches: [ "main" ]
   pull_request:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -16,6 +21,9 @@ jobs:
           distribution: temurin
           java-version: 17
           cache: maven
+
+      - name: Make Maven Wrapper executable (just in case)
+        run: chmod +x mvnw
 
       - name: Build & test
         run: ./mvnw -B -U verify
