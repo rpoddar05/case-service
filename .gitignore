@@ -31,3 +31,21 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# ==========================
+# Runtime & local artifacts
+# ==========================
+# Application logs and temp files
+logs/
+*.log
+*.tmp
+*.swp
+
+# OS-specific junk
+.DS_Store
+Thumbs.db
+
+# Local environment/secrets
+*.env
+application-local.properties
+application-local.yml
