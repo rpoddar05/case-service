@@ -4,6 +4,14 @@ server:
 spring:
   application:
     name: casesvc
+  kafka:
+    bootstrap-servers: localhost:19092
+    consumer:
+      group-id: case-svc
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
   datasource:
     url: jdbc:postgresql://localhost:5433/phep
     username: phep
@@ -20,6 +28,9 @@ spring:
   web:
     resources:
       add-mappings: true
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
 
 management:
   endpoints:
@@ -47,6 +58,8 @@ logging:
       max-history: 14
       total-size-cap: 1GB
 
+app:
+  topic: lab.events
 ---
 spring.config.activate.on-profile: prod
 springdoc:
