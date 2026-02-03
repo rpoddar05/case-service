@@ -13,7 +13,7 @@ spring:
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/phep
+    url: jdbc:postgresql://localhost:5433/casesvc_db
     username: phep
     password: phep
   jpa:
