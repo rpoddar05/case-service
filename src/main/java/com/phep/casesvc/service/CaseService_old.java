@@ -8,14 +8,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
-@Service
-public class CaseService {
-    private final CaseRepository repo;
-    public CaseService(CaseRepository repo){ this.repo = repo; }
+//@Service
+public class CaseService_old {
+  //  private final CaseRepository repo;
+/*    public CaseService_old(CaseRepository repo){ this.repo = repo; }
 
     @Transactional
     public CaseEntity create(String first, String last, String dob) {
@@ -57,5 +56,5 @@ public class CaseService {
         var pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         log.debug("ListCases service page={} size={} statusFilter={}", page, size, status);
         return (status == null) ? repo.findAll(pageable) : repo.findByStatus(status, pageable);
-    }
+    }*/
 }

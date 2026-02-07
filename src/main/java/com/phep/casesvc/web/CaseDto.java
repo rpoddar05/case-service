@@ -1,4 +1,4 @@
-package com.phep.casesvc.dto;
+package com.phep.casesvc.workflow;
 
 import jakarta.validation.constraints.NotBlank;
 
