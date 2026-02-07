@@ -82,6 +82,17 @@ If any check fails → fall back to patient matching logic.
 
 ---
 
+## Idempotency & Safety
+
+- Kafka provides *at-least-once* delivery
+- Duplicate lab events may be received
+- Processing is designed to be safe for replays
+
+Future enhancement:
+- Explicit idempotency keys per lab event
+
+---
+
 ## Auditing & Timestamps
 
 All entities inherit from a shared `AuditableEntity`:
