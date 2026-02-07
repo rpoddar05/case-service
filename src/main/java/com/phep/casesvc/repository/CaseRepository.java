@@ -6,7 +6,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface CaseRepository extends JpaRepository<CaseEntity, String> {
+import java.util.Optional;
+import java.util.UUID;
 
-    Page<CaseEntity> findByStatus(CaseStatus status, Pageable pageable);
+public interface CaseRepository extends JpaRepository<CaseEntity, UUID> {
+
+    Optional<CaseEntity> findFirstByPatientIdAndStatusOrderByOpenedAtDesc(UUID patientId, CaseStatus status);
+
+    //Page<CaseEntity> findByStatus(CaseStatus status, Pageable pageable);
 }

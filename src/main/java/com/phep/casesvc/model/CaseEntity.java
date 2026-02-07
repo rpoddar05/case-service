@@ -1,44 +1,39 @@
 package com.phep.casesvc.model;
 
+import com.phep.casesvc.model.PatientEntity;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.*;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name="cases")
-@Getter
-@Setter
-public class CaseEntity {
+@Table(name = "cases")
+@Getter @Setter
+public class CaseEntity extends  AuditableEntity {
 
     @Id
-    @Column(name="case_id", nullable = false, updatable = false)
-    private String caseId = UUID.randomUUID().toString();
+    @GeneratedValue
+    @Column(name = "id", columnDefinition = "uuid")
+    private UUID id;
 
-    @Column(nullable = false)
-    private String firstName;
-
-    @Column(nullable = false)
-    private String lastName;
-
-    @Column(nullable = false)
-    private String dob;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "patient_id", nullable = false)
+    private PatientEntity patient;
 
     @Enumerated(EnumType.STRING)
-    @Column(name="status",nullable = false)
-    private CaseStatus status = CaseStatus.OPEN;
+    @Column(name = "status", length = 20)
+    private CaseStatus status; // OPEN / CLOSED
+
+    @Column(name = "opened_at", nullable = false)
+    private OffsetDateTime openedAt;
+
+    @Column(name = "closed_at")
+    private OffsetDateTime closedAt;
 
 
-    @CreationTimestamp
-    @Column(nullable = false)
-    private OffsetDateTime createdAt =OffsetDateTime.now();
-
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private OffsetDateTime updatedAt =OffsetDateTime.now();
 }
-

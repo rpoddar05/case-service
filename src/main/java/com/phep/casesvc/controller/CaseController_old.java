@@ -1,32 +1,15 @@
 package com.phep.casesvc.controller;
 
-import com.phep.casesvc.dto.CaseDto;
-import com.phep.casesvc.model.CaseEntity;
-import com.phep.casesvc.model.CaseStatus;
-import com.phep.casesvc.repository.CaseRepository;
-import com.phep.casesvc.service.CaseService;
-import com.phep.casesvc.web.CaseResponse;
-import com.phep.casesvc.web.UpdateStatusRequest;
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.net.URI;
-import java.util.Optional;
 
 @Slf4j
-@RestController
-@RequestMapping("/cases")
-public class CaseController {
+//@RestController
+//@RequestMapping("/cases")
+public class CaseController_old {
 
-    private final CaseService service;
+/*    private final CaseService_old service;
 
-     public CaseController(CaseService service){
+     public CaseController_old(CaseService_old service){
          this.service = service;
      }
 
@@ -39,7 +22,7 @@ public class CaseController {
         var e = service.create(dto.firstName(), dto.lastName(), dto.dob());
         var body = toResponse(e);
 
-        log.info("CaseCreated id={} status={}", e.getCaseId(), e.getStatus());
+        log.info("CaseCreated  status={}", e.getStatus());
 
         return ResponseEntity.created(URI.create("/cases/" + e.getCaseId())).body(body);
     }
@@ -95,5 +78,5 @@ public class CaseController {
                 e.getCaseId(), e.getFirstName(), e.getLastName(),
                 e.getDob(), e.getStatus().name(), e.getCreatedAt(), e.getUpdatedAt()
         );
-    }
+    }*/
 }
