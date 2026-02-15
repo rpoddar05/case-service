@@ -2,6 +2,7 @@ package com.phep.casesvc.ingest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.phep.casesvc.contract.LabEventDto;
+import com.phep.casesvc.ingesterror.CaseIngestErrorService;
 import com.phep.casesvc.service.LabIngestWorkflowService;
 import com.phep.casesvc.workflow.IngestResult;
 import com.phep.casesvc.workflow.LabIngestCommand;
@@ -12,7 +13,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
 import java.util.UUID;
 
 @Slf4j
@@ -24,10 +24,12 @@ public class LabEventConsumer {
 
     private final ObjectMapper objectMapper;
     private final LabIngestWorkflowService labIngestWorkflowService;
+    private final CaseIngestErrorService caseIngestErrorService;
 
-    public LabEventConsumer(ObjectMapper objectMapper, LabIngestWorkflowService labIngestWorkflowService) {
+    public LabEventConsumer(ObjectMapper objectMapper, LabIngestWorkflowService labIngestWorkflowService, CaseIngestErrorService caseIngestErrorService) {
         this.objectMapper = objectMapper;
         this.labIngestWorkflowService = labIngestWorkflowService;
+        this.caseIngestErrorService = caseIngestErrorService;
     }
 
 
@@ -57,7 +59,18 @@ public class LabEventConsumer {
 
 
         } catch (Exception ex) {
-            // For now, just log. Next step we’ll decide retry vs DLQ vs store in DB
+
+            caseIngestErrorService.recordFailure(
+                    cid,
+                    record.topic(),
+                    record.partition(),
+                    record.offset(),
+                    record.key(),
+                    record.value(),   // raw JSON string if available
+                    ex
+            );
+
+
             log.error("LAB EVENT FAILED to parse/process. key={} partition={} offset={} error={}",
                     record.key(), record.partition(), record.offset(), ex.toString(), ex);
 
@@ -98,11 +111,3 @@ public class LabEventConsumer {
 
     }
 }
-//String caseId,
-//String patientFirstName,
-//String patientLastName,
-//LocalDate dob,
-//String testCode,
-//String resultValue,
-//String resultStatus,  // keep String for now
-//String labName
