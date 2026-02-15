@@ -11,11 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
 import java.util.Optional;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -38,6 +34,7 @@ public class LabIngestWorkflowService {
             PatientEntity patient = caze.getPatient();
 
             LabResultEntity lab = labResultService.saveLabResult(
+                    cmd.eventId(),
                     patient,
                     caze,
                     cmd.testCode(),
@@ -73,7 +70,7 @@ public class LabIngestWorkflowService {
         CaseResolution caseResolution = caseWorkflowService.resolveOrCreateCase(patient);
 
         // 3) persist lab row
-        LabResultEntity labResult = labResultService.saveLabResult(patient, caseResolution.caseEntity(),
+        LabResultEntity labResult = labResultService.saveLabResult(cmd.eventId(), patient, caseResolution.caseEntity(),
                                                                     cmd.testCode(), cmd.resultValue(),
                                                                     cmd.resultStatus(), cmd.labName(), cmd.receivedAt());
 

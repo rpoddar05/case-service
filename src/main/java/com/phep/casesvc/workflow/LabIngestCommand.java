@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 public record LabIngestCommand(
+        String eventId,
         String caseId,              //  can be null
         String firstName,
         String lastName,

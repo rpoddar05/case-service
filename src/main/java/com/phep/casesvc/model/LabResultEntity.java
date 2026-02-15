@@ -17,6 +17,9 @@ public class LabResultEntity extends CreatableEntity{
     @Column(name = "id", columnDefinition = "uuid")
     private UUID id;
 
+    @Column(name = "event_id", nullable = false, length = 64)
+    private String eventId;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "patient_id", nullable = false)
     private PatientEntity patient;

@@ -76,6 +76,7 @@ public class LabEventConsumer {
     private LabIngestCommand from(LabEventDto e){
 
         return new LabIngestCommand(
+                e.eventId(),
                 e.caseId(),
                 e.patientFirstName(),
                 e.patientLastName(),

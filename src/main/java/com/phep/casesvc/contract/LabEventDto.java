@@ -6,6 +6,7 @@ import java.time.LocalDate;
 
 @JsonIgnoreProperties(ignoreUnknown = true) // consumer should be tolerant
 public record LabEventDto(
+        String eventId,
         String caseId,
         String patientFirstName,
         String patientLastName,
