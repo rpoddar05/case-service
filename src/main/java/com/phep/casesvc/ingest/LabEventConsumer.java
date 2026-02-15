@@ -24,17 +24,15 @@ public class LabEventConsumer {
 
     private final ObjectMapper objectMapper;
     private final LabIngestWorkflowService labIngestWorkflowService;
-    private final CaseIngestErrorService caseIngestErrorService;
 
-    public LabEventConsumer(ObjectMapper objectMapper, LabIngestWorkflowService labIngestWorkflowService, CaseIngestErrorService caseIngestErrorService) {
+    public LabEventConsumer(ObjectMapper objectMapper, LabIngestWorkflowService labIngestWorkflowService) {
         this.objectMapper = objectMapper;
         this.labIngestWorkflowService = labIngestWorkflowService;
-        this.caseIngestErrorService = caseIngestErrorService;
     }
 
 
     @KafkaListener(topics = "lab.events", groupId = "case-svc")
-    public void onMessage(ConsumerRecord<String, String> record) {
+    public void onMessage(ConsumerRecord<String, String> record) throws Exception {
 
         String cid = extractCid(record);
 
@@ -58,33 +56,7 @@ public class LabEventConsumer {
 
 
 
-        } catch (Exception ex) {
-
-            // 1) Persist error (always) so we don't rely on logs
-            try {
-                caseIngestErrorService.recordFailure(
-                        cid,
-                        record.topic(),
-                        record.partition(),
-                        record.offset(),     // maps to kafka_offset column via service/entity
-                        record.key(),
-                        record.value(),
-                        ex
-                );
-            } catch (Exception persistEx) {
-                // If persisting fails, we still want the original exception to drive retry behavior
-                log.error("Failed to persist case_ingest_error row. corrId={} topic={} partition={} offset={} persistError={}",
-                        cid, record.topic(), record.partition(), record.offset(), persistEx.toString(), persistEx);
-            }
-
-            // 2) Log with context
-            log.error("LAB EVENT FAILED. key={} topic={} partition={} offset={} corrId={} error={}",
-                    record.key(), record.topic(), record.partition(), record.offset(), cid, ex.toString(), ex);
-
-            // 3) Rethrow: keep retry semantics for now (PR-2.2 will add controlled retry + DLQ)
-            throw new RuntimeException(ex);
-
-        }finally {
+        } finally {
             MDC.remove(CID_MDC_KEY);
         }
     }

@@ -19,21 +19,31 @@ public class CaseIngestErrorService {
             long kafkaOffset,
             String messageKey,
             String payload,
-            Throwable ex
+            Throwable t
     ){
+
+        Throwable root = rootCause(t);
+
+
         CaseIngestErrorEntity e = new CaseIngestErrorEntity();
         e.setCorrelationId(correlationId);
         e.setTopic(topic);
         e.setPartition(partition);
         e.setOffset(kafkaOffset);
         e.setMessageKey(messageKey);
-
-        e.setErrorType(ex.getClass().getSimpleName());
-        e.setErrorMessage(safeMessage(ex));
+        e.setErrorType(root.getClass().getSimpleName());
+        e.setErrorMessage(safeMessage(root));
         e.setPayload(payload);
+        e.setStatus("NEW");
 
         repo.save(e);
 
+    }
+
+    private Throwable rootCause(Throwable t) {
+        Throwable cur = (t == null) ? new RuntimeException("unknown error") : t;
+        while (cur.getCause() != null) cur = cur.getCause();
+        return cur;
     }
 
     private String safeMessage(Throwable ex) {
