@@ -84,9 +84,13 @@ If any check fails → fall back to patient matching logic.
 
 ## Idempotency & Safety
 
-- Kafka provides *at-least-once* delivery
+Kafka provides *at-least-once* delivery.
+
+The service is designed to be replay-safe and resilient to duplicate events.
+
 - Duplicate lab events may be received
-- Processing is designed to be safe for replays
+- Case resolution logic prevents multiple active cases
+- Lab persistence is safe for reprocessing
 
 Future enhancement:
 - Explicit idempotency keys per lab event
@@ -119,3 +123,115 @@ Guarantees:
 Example:
 ```text
 [demo-002] LabIngested patientId=... caseId=... labId=...
+
+```
+---
+
+## Reliability & Failure Handling (PR-2)
+
+To ensure production-grade robustness, the case-service implements **controlled retry**, **DLQ publishing**, and **failure persistence**.
+
+### Retry Strategy
+
+- Uses Spring Kafka `DefaultErrorHandler`
+- Retries failed records **2 times**
+- Fixed backoff: **1 second**
+- Total attempts: **3** (1 initial + 2 retries)
+
+Each retry attempt is logged with:
+- correlationId
+- topic
+- partition
+- offset
+- attempt number
+- error type
+
+This helps transient failures (e.g., temporary DB/network issues) recover automatically.
+
+### Non-Retryable Exceptions (Poison Pills)
+
+The following exceptions are **not retried** (sent directly to final recovery):
+
+- `JsonProcessingException`
+- `IllegalArgumentException`
+
+This prevents infinite retry loops for malformed payloads.
+
+### Dead Letter Queue (DLQ)
+
+When retries are exhausted (or for non-retryable errors), the record is published to:
+
+```text
+<original-topic>.DLQ
+```
+
+Example:
+
+```text
+lab.events → lab.events.DLQ
+```
+
+Partition is preserved to maintain ordering guarantees per partition.
+
+### Failure Persistence: case_ingest_error
+
+All failed records are stored in the table:
+
+```text
+case_ingest_error
+```
+
+Stored metadata includes:
+- created_at
+- topic
+- partition
+- kafka_offset
+- message_key
+- correlation_id
+- error_type
+- error_message
+- payload
+- status (NEW, FIXED, REPLAYED, IGNORED)
+
+### Why This Matters
+
+Logs are ephemeral. The database guarantees:
+
+- Auditability
+- Traceability
+- Replay capability
+- Production support workflows
+
+Failures are persisted using:
+
+```text
+@Transactional(propagation = Propagation.REQUIRES_NEW)
+```
+
+This ensures:
+- Even if the main transaction rolls back
+- The failure record is committed
+
+### Failure Processing Flow
+
+1. Consumer receives record 
+2. Business logic throws exception 
+3. Kafka retries (based on backoff policy)
+4. After retries are exhausted:
+    - Failure is stored in `case_ingest_error`
+    - Record is published to DLQ
+    - Offset is committed (record will not reprocess automatically)
+
+
+## Current System State
+
+The case-service now supports:
+- Domain workflow processing 
+- Safe case resolution logic 
+- CaseId fast-path optimization 
+- Transactional guarantees 
+- Auditable timestamps 
+- Correlation ID tracing 
+- Controlled retries 
+- DLQ publishing 
+- Persistent failure storage
