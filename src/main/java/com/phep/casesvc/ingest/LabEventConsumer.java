@@ -60,24 +60,30 @@ public class LabEventConsumer {
 
         } catch (Exception ex) {
 
-            caseIngestErrorService.recordFailure(
-                    cid,
-                    record.topic(),
-                    record.partition(),
-                    record.offset(),
-                    record.key(),
-                    record.value(),   // raw JSON string if available
-                    ex
-            );
+            // 1) Persist error (always) so we don't rely on logs
+            try {
+                caseIngestErrorService.recordFailure(
+                        cid,
+                        record.topic(),
+                        record.partition(),
+                        record.offset(),     // maps to kafka_offset column via service/entity
+                        record.key(),
+                        record.value(),
+                        ex
+                );
+            } catch (Exception persistEx) {
+                // If persisting fails, we still want the original exception to drive retry behavior
+                log.error("Failed to persist case_ingest_error row. corrId={} topic={} partition={} offset={} persistError={}",
+                        cid, record.topic(), record.partition(), record.offset(), persistEx.toString(), persistEx);
+            }
 
+            // 2) Log with context
+            log.error("LAB EVENT FAILED. key={} topic={} partition={} offset={} corrId={} error={}",
+                    record.key(), record.topic(), record.partition(), record.offset(), cid, ex.toString(), ex);
 
-            log.error("LAB EVENT FAILED to parse/process. key={} partition={} offset={} error={}",
-                    record.key(), record.partition(), record.offset(), ex.toString(), ex);
-
-
-            // Throwing causes retry (depending on error handler config).
-            // Swallowing commits offset and you “lose” the event.
+            // 3) Rethrow: keep retry semantics for now (PR-2.2 will add controlled retry + DLQ)
             throw new RuntimeException(ex);
+
         }finally {
             MDC.remove(CID_MDC_KEY);
         }
